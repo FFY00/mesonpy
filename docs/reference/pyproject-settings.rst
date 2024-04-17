@@ -34,6 +34,17 @@ use them and examples.
    ``meson-python`` itself. It can be overridden by the :envvar:`MESON`
    environment variable.
 
+.. option:: tool.meson-python.shared-libs-win32
+
+   A boolean indicating whether shared libraries should be supported on
+   Windows. ``meson-python`` installs shared libraries in a dedicated location
+   and uses RPATH or equivalent mechanisms to have Python modules and native
+   executables load them form there. Windows does not have an equivalent
+   mechanism to set the DLL load path. Supporting shared libraries on Windows
+   requires collaboration from the package. To make sure that package authors
+   are aware of this requirement, ``meson-python`` raises an error if a
+   package contains DLLs and this option is not set.
+
 .. option:: tool.meson-python.args.dist
 
    Extra arguments to be passed to the ``meson dist`` command.

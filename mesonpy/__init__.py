@@ -311,10 +311,12 @@ class _WheelBuilder():
         metadata: Metadata,
         manifest: Dict[str, List[Tuple[pathlib.Path, str]]],
         limited_api: bool,
+        shared_libs_win32: bool,
     ) -> None:
         self._metadata = metadata
         self._manifest = manifest
         self._limited_api = limited_api
+        self._shared_libs_win32 = shared_libs_win32
 
     @property
     def _has_internal_libs(self) -> bool:
@@ -430,6 +432,9 @@ class _WheelBuilder():
 
         if self._has_internal_libs:
             if _is_native(origin):
+                if sys.platform == 'win32' and not self._shared_libs_win32:
+                    raise NotImplementedError(f'Bundling libraries in wheel is not supported on {sys.platform}')
+
                 # When an executable, libray, or Python extension module is
                 # dynamically linked to a library built as part of the project,
                 # Meson adds a library load path to it pointing to the build
@@ -567,6 +572,7 @@ def _validate_pyproject_config(pyproject: Dict[str, Any]) -> Dict[str, Any]:
     scheme = _table({
         'meson': _string_or_path,
         'limited-api': _bool,
+        'shared-libs-win32': _bool,
         'args': _table({
             name: _strings for name in _MESON_ARGS_KEYS
         }),
@@ -758,6 +764,10 @@ class Project():
             if not value:
                 self._limited_api = False
 
+        # Shared library support on Windows requires collaboration
+        # from the package, make sure the developpers aknowledge this.
+        self._shared_libs_win32 = pyproject_config.get('shared-libs-win32', False)
+
     def _run(self, cmd: Sequence[str]) -> None:
         """Invoke a subprocess."""
         # Flush the line to ensure that the log line with the executed
@@ -921,13 +931,13 @@ class Project():
     def wheel(self, directory: Path) -> pathlib.Path:
         """Generates a wheel in the specified directory."""
         self.build()
-        builder = _WheelBuilder(self._metadata, self._manifest, self._limited_api)
+        builder = _WheelBuilder(self._metadata, self._manifest, self._limited_api, self._shared_libs_win32)
         return builder.build(directory)
 
     def editable(self, directory: Path) -> pathlib.Path:
         """Generates an editable wheel in the specified directory."""
         self.build()
-        builder = _EditableWheelBuilder(self._metadata, self._manifest, self._limited_api)
+        builder = _EditableWheelBuilder(self._metadata, self._manifest, self._limited_api, self._shared_libs_win32)
         return builder.build(directory, self._source_dir, self._build_dir, self._build_command, self._editable_verbose)
 
 
