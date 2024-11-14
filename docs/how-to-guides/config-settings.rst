@@ -24,7 +24,7 @@ the ``-C`` short command line option:
 
 	.. code-block:: console
 
-	   $ python -m build \
+	   $ python -m build --wheel \
                -Csetup-args="-Doption=true" \
                -Csetup-args="-Dvalue=1" \
                -Ccompile-args="-j6"
@@ -34,6 +34,7 @@ the ``-C`` short command line option:
 
 	.. code-block:: console
 
+       $ # note: pip >=23.1 also accepts -C instead of --config-settings
 	   $ python -m pip wheel . \
                --config-settings=setup-args="-Doption=disable" \
                --config-settings=compile-args="-j6"
