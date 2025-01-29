@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2024 The meson-python developers
+#
+# SPDX-License-Identifier: MIT
+
+[wrap-file]
+method = cmake
+
+[provide]
+cmaketest = cmaketest_dep
