@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import collections
 import contextlib
+import copy
 import difflib
 import functools
 import importlib.machinery
@@ -924,6 +925,17 @@ class Project():
 
         with tarfile.open(meson_dist_path, 'r:gz') as meson_dist, mesonpy._util.create_targz(sdist_path) as sdist:
             for member in meson_dist.getmembers():
+                # Wheels do not support links, though sdist tarballs could. For portability, reduce these to regular files.
+                if member.islnk() or member.issym():
+                    # Symlinks are relative to member directory, but hard links are relative to tarball root.
+                    path = member.name.rsplit('/', 1)[0] + '/' if member.issym() else ''
+                    orig = meson_dist.getmember(path + member.linkname)
+                    member = copy.copy(member)
+                    member.mode = orig.mode
+                    member.mtime = orig.mtime
+                    member.size = orig.size
+                    member.type = tarfile.REGTYPE
+
                 if member.isfile():
                     file = meson_dist.extractfile(member.name)
 

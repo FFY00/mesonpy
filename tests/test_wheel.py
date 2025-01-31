@@ -372,6 +372,23 @@ def test_install_subdir(wheel_install_subdir):
         }
 
 
+def test_install_symlink(wheel_symlinks):
+    artifact = wheel.wheelfile.WheelFile(wheel_symlinks)
+    # Handling of the exclude_files and exclude_directories requires
+    # Meson 1.1.0, see https://github.com/mesonbuild/meson/pull/11432.
+    # Run the test anyway to ensure that meson-python can produce a
+    # wheel also for older versions of Meson.
+    if MESON_VERSION >= (1, 1, 99):
+        assert wheel_contents(artifact) == {
+            'symlinks-1.0.0.dist-info/METADATA',
+            'symlinks-1.0.0.dist-info/RECORD',
+            'symlinks-1.0.0.dist-info/WHEEL',
+            'subdir/__init__.py',
+            'subdir/test.py',
+            'subdir/symlink.py',
+        }
+
+
 def test_vendored_meson(wheel_vendored_meson):
     # This test will error if the vendored meson.py wrapper script in
     # the test package isn't used.
